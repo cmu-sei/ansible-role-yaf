@@ -1,0 +1,101 @@
+---
+#Copyright 2020 Carnegie Mellon University.
+#NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+#Released under a MIT (SEI)-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
+#[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+#CERT® is registered in the U.S. Patent and Trademark Office by Carnegie Mellon University.
+#This Software includes and/or makes use of the following Third-Party Software subject to its own license:
+#1. ansible (https://github.com/ansible/ansible/tree/devel/licenses) Copyright 2019 Red Hat, Inc.
+#2. molecule (https://github.com/ansible-community/molecule/blob/master/LICENSE) Copyright 2018 Red Hat, Inc.
+#3. testinfra (https://github.com/philpep/testinfra/blob/master/LICENSE) Copyright 2020 Philippe Pepiot.
+#DM20-0509
+# tasks file for yaf
+- name: check for yaf installation
+  shell: "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config --modversion libyaf"
+  changed_when: false
+  register: installed_yaf_version
+  failed_when: installed_yaf_version is failed and not 'Package libyaf was not found' in installed_yaf_version.stderr
+
+- when: installed_yaf_version.stdout != yaf_version
+  block:
+    - name: Run ldconfig
+      command: ldconfig
+
+    - name: download yaf...
+      get_url:
+        url: '{{ yaf_url }}'
+        dest: /tmp/{{ yaf_tgz }}
+        mode: 0644
+        checksum: '{{ yaf_checksum }}'
+        timeout: '{{ yaf_timeout }}'
+
+    - name: unarchive yaf....
+      unarchive:
+        remote_src: yes
+        dest: '/tmp'
+        src: /tmp/{{ yaf_tgz }}
+        creates: '/tmp/{{ yaf_name }}'
+
+    - name: configure yaf
+      command: "./configure --enable-applabel --enable-plugins"
+      args:
+        chdir: "/tmp/{{ yaf_name }}"
+
+    - name: Build the default target
+      make:
+        chdir: "/tmp/{{ yaf_name }}"
+
+    - name: Run Install target
+      make:
+        chdir: "/tmp/{{ yaf_name }}"
+        target: install
+
+    - name: Run ldconfig
+      command: ldconfig
+  always:
+    - name: cleanup tar...
+      file:
+        path: /tmp/{{ yaf_tgz }}
+        state: absent
+    - name: cleanup unpacked...
+      file:
+        path: /tmp/{{ yaf_name }}
+        state: absent
+
+- name: Create necessary directories
+  file:
+    path: "{{ item.p }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_items:
+    - p: "{{ yaf_statedir }}"
+    - p: "{{ yaf_log_folder }}"
+  when: yaf_service
+
+- name: create yaf.conf for service settings
+  template:
+    src: "{{ yaf_conf_template }}"
+    dest: "{{ yaf_conf_file_path }}"
+    mode: 0644
+    owner: root
+    group: root
+  notify:
+    - "restart yaf"
+  when: yaf_service
+
+- name: create yaf init script
+  template:
+    src: "{{ yaf_init_template }}"
+    dest: "{{ yaf_init_file_path }}"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - "restart yaf"
+  when: yaf_service
+
+- name: start yaf
+  service: name=yaf state=started enabled=yes
+  when: yaf_service
