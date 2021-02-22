@@ -43,7 +43,7 @@ def test_svc(host, svc):
 
 
 def test_yaf_version(host):
-    version = "2.11.0"
+    version = "2.12.1"
     command = """PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config \
                  --modversion libyaf"""
     cmd = host.run(command)
