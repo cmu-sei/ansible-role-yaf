@@ -15,6 +15,7 @@ galaxy_info:
   company: CERT
   license: license (MIT)
   role_name: yaf
+  namespace: cmusei
 
   min_ansible_version: 2.4
 
@@ -22,9 +23,17 @@ galaxy_info:
     - name: EL
       versions:
         - 7
+        - 8
     - name: Ubuntu
       versions:
+        - xenial
         - bionic
+        - focal
+    - name: Debian
+      versions:
+        - stretch
+        - buster
+        - bullseye
 
   galaxy_tags:
     - cert
