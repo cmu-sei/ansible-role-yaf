@@ -30,7 +30,7 @@ import testinfra.utils.ansible_runner
 
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
     os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
-
+ 
 
 @pytest.mark.parametrize('svc', [
   'yaf'
@@ -43,7 +43,7 @@ def test_svc(host, svc):
 
 
 def test_yaf_version(host):
-    version = "2.12.1"
+    version = "2.12.2"
     command = """PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig pkg-config \
                  --modversion libyaf"""
     cmd = host.run(command)
