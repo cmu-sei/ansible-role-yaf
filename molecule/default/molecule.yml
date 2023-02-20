@@ -21,7 +21,7 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
     pre_build_image: true
-    groupns_mode: host
+    cgroupns_mode: host
     env:
       http_proxy: "${http_proxy}"
       https_proxy: "${https_proxy}"
