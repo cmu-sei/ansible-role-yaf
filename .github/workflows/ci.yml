@@ -57,7 +57,6 @@ jobs:
           - ubuntu1804
           - debian11
           - debian10
-          - debian9
 
     steps:
       - name: Check out the codebase.
