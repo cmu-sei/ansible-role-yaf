@@ -12,7 +12,7 @@
 - name: Prepare
   hosts: all
   vars:
-    yaf_version: "2.12.1"
+    yaf_version: "2.14.0"
   roles:
     - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
   environment:
