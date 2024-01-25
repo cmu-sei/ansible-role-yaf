@@ -11,7 +11,7 @@
 #DM20-0509
 # defaults file for yaf
 netsa_url: "http://tools.netsa.cert.org/releases/"
-yaf_version: "2.13.0"
+yaf_version: "2.15.0"
 yaf_name: "yaf-{{ yaf_version }}"
 yaf_tgz: "{{ yaf_name }}.tar.gz"
 yaf_url: "{{ netsa_url }}{{ yaf_tgz }}"
